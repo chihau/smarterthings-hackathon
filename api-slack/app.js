@@ -276,12 +276,14 @@ bot.on('start', function() {
                           switch (type) {
                             case "yes_no":
                               if (sentences_action === "be") {
-                                if (adjective === "happy") {
-                                  sendMessageToSlackBot("It looks like your dog is happy");
-                                  sendMessageToSlackBot(HAPPY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
-                                } else if (adjective === "angry"){
-                                  sendMessageToSlackBot("It looks like your dog is angry");
-                                  sendMessageToSlackBot(ANGRY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
+                                if (sentences_agent.indexOf("dog") != -1) {
+                                  if (adjective === "happy") {
+                                    sendMessageToSlackBot("It looks like your dog is happy");
+                                    sendMessageToSlackBot(HAPPY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
+                                  } else if (adjective === "angry"){
+                                    sendMessageToSlackBot("It looks like your dog is angry");
+                                    sendMessageToSlackBot(ANGRY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
+                                  }  
                                 }
                               }
                               break;
