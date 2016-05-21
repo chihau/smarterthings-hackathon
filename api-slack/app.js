@@ -1,8 +1,22 @@
 var SlackBot = require('slackbots');
- 
+var recast = require('recastai');
+
+
+// Utility methods
+function request(text, callback) {
+  if (text != "") {
+    CLIENT.textRequest(text, callback);
+  } else {
+    error(text);
+  }
+}
+
+// Recast Client
+const CLIENT = new recast.Client("6e2279f76259410654ada452d8c2404e");
+
 // create a bot 
 var bot = new SlackBot({
-    token: 'xoxb-44793896054-XIdcvJTyqeAjfBLrLudZi6bH', // Add a bot https://my.slack.com/services/new/bot and put the token  
+    token: '', // Add a bot https://my.slack.com/services/new/bot and put the token  
     name: 'smarterthingsbot'
 });
  
@@ -28,10 +42,29 @@ bot.on('start', function() {
         // console.log(data);
 
         if (data.type === "message") {
-            console.log("channel:", message.channel);
-            console.log("user:", message.user);
-            console.log("text:", message.text);
-            console.log("ts:", message.ts);
+            console.log("channel:", data.channel);
+            console.log("user:", data.user);
+            console.log("text:", data.text);
+            console.log("ts:", data.ts);
+
+            var message = data.text;
+
+            request(message, (res, err) => {
+              if (err == null) {
+                console.log(res);
+              } else {
+                console.log("Error: " + err);
+
+              }
+            });
+
+            request(message, (res, err) => {
+              if (err == null) {
+                console.log(res);
+              } else {
+                console.log("Error: " + err);
+              }
+            });
         }
     });
 });
