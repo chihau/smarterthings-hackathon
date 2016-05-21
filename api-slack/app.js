@@ -26,6 +26,10 @@ bot.on('start', function() {
     var params = {
         icon_emoji: ':cat:'
     };
+
+    function sendMessage(text) {
+      bot.postMessageToChannel('general', text, params);
+    };
     
     // // define channel, where bot exist. You can adjust it there https://my.slack.com/services  
     // bot.postMessageToChannel('general', 'meow!', params);
@@ -41,11 +45,13 @@ bot.on('start', function() {
         // all ingoing events https://api.slack.com/rtm 
         // console.log(data);
 
-        if (data.type === "message") {
+        if (data.type === "message" && data.user != undefined) {
             console.log("channel:", data.channel);
             console.log("user:", data.user);
             console.log("text:", data.text);
             console.log("ts:", data.ts);
+
+            sendMessage("User: " + data.user + " sent: " + data.text);
 
             var message = data.text;
 
