@@ -261,10 +261,10 @@ bot.on('start', function() {
                               if (sentences_action === "be") {
                                 if (adjective === "happy") {
                                   sendMessageToSlackBot("It looks like your dog is happy");
-                                  sendMessageToSlackBot(HAPPY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999));
+                                  sendMessageToSlackBot(HAPPY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
                                 } else if (adjective === "angry"){
                                   sendMessageToSlackBot("It looks like your dog is angry");
-                                  sendMessageToSlackBot(ANGRY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999));
+                                  sendMessageToSlackBot(ANGRY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
                                 }
                               }
                               break;
