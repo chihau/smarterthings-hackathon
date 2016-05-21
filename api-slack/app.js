@@ -43,32 +43,31 @@ bot.on('start', function() {
     
     bot.on('message', function(data) {
         // all ingoing events https://api.slack.com/rtm 
-        // console.log(data);
+        console.log(data);
 
-        if (data.type === "message" && data.user != undefined) {
-            console.log("channel:", data.channel);
-            console.log("user:", data.user);
-            console.log("text:", data.text);
-            console.log("ts:", data.ts);
+        if (data.type === "message" && data.user) {
+            console.log("Slack:", "channel:", data.channel);
+            console.log("Slack:", "user:", data.user);
+            console.log("Slack:", "text:", data.text);
+            console.log("Slack:", "ts:", data.ts);
 
             sendMessage("User: " + data.user + " sent: " + data.text);
 
             var message = data.text;
 
-            request(message, (res, err) => {
+            request(message, function(res, err) {
               if (err == null) {
-                console.log(res);
+                console.log("Recast:", res);
               } else {
-                console.log("Error: " + err);
-
+                console.error("Recast:", "Error: " + err);
               }
             });
 
-            request(message, (res, err) => {
+            request(message, function (res, err) {
               if (err == null) {
-                console.log(res);
+                console.log("Recast:", res);
               } else {
-                console.log("Error: " + err);
+                console.error("Recast:", "Error: " + err);
               }
             });
         }
