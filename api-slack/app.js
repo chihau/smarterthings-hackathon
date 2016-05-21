@@ -181,7 +181,7 @@ bot.on('start', function() {
                                 } else if (sentences_action === "turn on") {
                                     sendSmartThingsCommand({"command":"on","params":{}});
                                 } else if (sentences_action === "dim") {
-                                    sendSmartThingsCommand({"command":"on","params":{ "level" : percent }});
+                                    sendSmartThingsCommand({"command":"setLevel","params":{ "level" : percent }});
                                 }
                                 break;
                             }
