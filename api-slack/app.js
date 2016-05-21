@@ -2,7 +2,6 @@ var SlackBot = require('slackbots');
 var recast = require('recastai');
 var request = require('request');
 
-
 // Utility methods
 function sendRequestToRecast(text, callback) {
   if (text != "") {
@@ -11,6 +10,22 @@ function sendRequestToRecast(text, callback) {
     error(text);
   }
 }
+
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+const HAPPY_DOG_PICS = [
+  "http://evansheline.com/wp-content/uploads/2012/04/happy-dog.jpg",
+  "http://elelur.com/data_images/articles/happy-dogs-do-you-know-what-makes-them-really-so.jpg",
+  "http://7-themes.com/data_images/out/9/6797614-happy-dog-wallpaper-hd.jpg"
+];
+
+const ANGRY_DOG_PICS = [
+  "https://i.ytimg.com/vi/Dy9Amm6SioY/maxresdefault.jpg",
+  "http://friendswithpaws.com/wp-content/uploads/2014/06/bigstock-Angry-Chihuahua-Growling-Ye-7629174.jpg",
+  "http://i4.mirror.co.uk/incoming/article1829547.ece/ALTERNATES/s615/Angry-dog.jpg"
+];
 
 // Recast Client
 const CLIENT = new recast.Client("6e2279f76259410654ada452d8c2404e");
@@ -59,35 +74,37 @@ function sendSmartThingsCommand(commandObject) {
 
 receiveSmartThingsStatus();
 
-// create a bot 
+// create a bot
 var bot = new SlackBot({
-    token: process.env.SLACK_TOKEN, // Add a bot https://my.slack.com/services/new/bot and put the token  
+    token: process.env.SLACK_TOKEN, // Add a bot https://my.slack.com/services/new/bot and put the token
     name: 'smarterthingsbot'
 });
- 
+
 bot.on('start', function() {
     // more information about additional params https://api.slack.com/methods/chat.postMessage
     console.log("start");
     var params = {
-        icon_emoji: ':cat:'
+        icon_emoji: ':cat:',
+        unfurl_media: true,
+        unfurl_links: true
     };
 
     function sendMessageToSlackBot(text) {
       bot.postMessageToChannel('general', text, params);
     };
-    
-    // // define channel, where bot exist. You can adjust it there https://my.slack.com/services  
-    // bot.postMessageToChannel('general', 'meow!', params);
-    
-    // // define existing username instead of 'user_name' 
-    // bot.postMessageToUser('user_name', 'meow!', params); 
-    
-    // // define private group instead of 'private_group', where bot exist 
-    // bot.postMessageToGroup('private_group', 'meow!', params); 
 
-    
+    // // define channel, where bot exist. You can adjust it there https://my.slack.com/services
+    // bot.postMessageToChannel('general', 'meow!', params);
+
+    // // define existing username instead of 'user_name'
+    // bot.postMessageToUser('user_name', 'meow!', params);
+
+    // // define private group instead of 'private_group', where bot exist
+    // bot.postMessageToGroup('private_group', 'meow!', params);
+
+
     bot.on('message', function(data) {
-        // all ingoing events https://api.slack.com/rtm 
+        // all ingoing events https://api.slack.com/rtm
         // console.log(data);
 
         if (data.type === "message" && data.user) {
@@ -143,6 +160,7 @@ bot.on('start', function() {
                 var adjective = "";
                 var percent = "";
                 var type = "";
+                var agent = "";
 
                 for (var i = 0; i < sentences.length; i++) {
                     // type can be "yes_no", or "command"
@@ -175,10 +193,11 @@ bot.on('start', function() {
                 console.log("Recast:", "action:", sentences_action);
                 console.log("Recast:", "noun:", noun);
                 console.log("Recast:", "adjective:", adjective);
+                console.log("Recgast:", "agent:", sentences_agent);
                 console.log("\n");
 
-                sendMessageToSlackBot("message: " + message 
-                    + "\naction: " + sentences_action 
+                sendMessageToSlackBot("message: " + message
+                    + "\naction: " + sentences_action
                     + "\nintents: " + intents);
 
                 if (intentFiltered) {
@@ -236,6 +255,21 @@ bot.on('start', function() {
                                 break;
                             }
                         break;
+                        case INTENT_STATUS:
+                          switch (type) {
+                            case "yes_no":
+                              if (sentences_action === "be") {
+                                if (adjective === "happy") {
+                                  sendMessageToSlackBot("It looks like your dog is happy");
+                                  sendMessageToSlackBot(HAPPY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999));
+                                } else if (adjective === "angry"){
+                                  sendMessageToSlackBot("It looks like your dog is angry");
+                                  sendMessageToSlackBot(ANGRY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999));
+                                }
+                              }
+                              break;
+                          }
+                          break;
                         default:
                             console.warn("failed to find filtered intent", intentFiltered);
                     }
