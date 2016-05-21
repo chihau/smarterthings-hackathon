@@ -1,9 +1,10 @@
 var SlackBot = require('slackbots');
 var recast = require('recastai');
+var request = require('request');
 
 
 // Utility methods
-function request(text, callback) {
+function sendRequestToRecast(text, callback) {
   if (text != "") {
     CLIENT.textRequest(text, callback);
   } else {
@@ -11,13 +12,34 @@ function request(text, callback) {
   }
 }
 
-var binaryAdjectiveMap = {
-    "open" : 1,
-    "close" : 0
-}
-
 // Recast Client
 const CLIENT = new recast.Client("6e2279f76259410654ada452d8c2404e");
+
+// Intent consts
+const INTENT_HELLOGREETINGS = "hello-greetings";
+const INTENT_LIGHTS = "lights";
+
+function sendSmartThingsCommand(commandObject) {
+    request.post(
+    {
+        headers: {
+          "Authorization": "Bearer 6d0e2a98-c65c-4938-a4fa-04089c88d50e",
+          'Content-Type': 'application/json'
+        },
+        uri: 'https://graph.api.smartthings.com/api/smartapps/installations/9516b0a3-d929-4c05-891a-d5b93ae87f34/devices/switches/a365ec3f-41de-49d7-973e-9efee9191000/commands',
+        body: JSON.stringify(
+            commandObject
+        ),
+        method: 'POST'
+        }, function (err, res, body) {
+            if (err) {
+                console.error("SmartThings:", err);
+                return;
+            }
+            console.log("SmartThings:", body);
+        }
+    );
+}
 
 // create a bot 
 var bot = new SlackBot({
@@ -32,7 +54,7 @@ bot.on('start', function() {
         icon_emoji: ':cat:'
     };
 
-    function sendMessage(text) {
+    function sendMessageToSlackBot(text) {
       bot.postMessageToChannel('general', text, params);
     };
     
@@ -56,11 +78,9 @@ bot.on('start', function() {
             console.log("Slack:", "text:", data.text);
             console.log("Slack:", "ts:", data.ts);
 
-            sendMessage("User: " + data.user + " sent: " + data.text);
-
             var message = data.text;
 
-            request(message, function(res, err) {
+            sendRequestToRecast(message, function(res, err) {
                 if (err) {
                     console.error("Recast:", "Error: " + err);
                     return;
@@ -88,8 +108,19 @@ bot.on('start', function() {
 
                 // console.log("Recast:", res.raw.results.sentences);
 
+                var intents = res.raw.results.intents;
+                // console.log("Recast:", intents);
                 var sentences = res.raw.results.sentences;
                 // sentences can be > 1
+
+                var filterForIntents = [INTENT_HELLOGREETINGS, INTENT_LIGHTS];
+
+                var intentFiltered = "";
+                for (var f = 0; f < filterForIntents.length; f++) {
+                    if (intents.indexOf(filterForIntents[f]) > -1) {
+                        intentFiltered = filterForIntents[f];
+                    }
+                }
 
                 var noun = "";
                 var adjective = "";
@@ -115,16 +146,36 @@ bot.on('start', function() {
                         noun = entity.noun ? (entity.noun[0] || entry.noun).value : "";
                         adjective = entity.adjective ? (entity.adjective[0] || entry.adjective).value : "";
                     }
-
-                    console.log("Recast:", "Sentence:");
-                    console.log("Recast:", "type:", sentences_type);
-                    console.log("Recast:", "action:", sentences_action);
-                    console.log("Recast:", "noun:", noun);
-                    console.log("Recast:", "adjective:", adjective);
-                    console.log("Script:", "binary:", binaryAdjectiveMap[adjective]);
-                    console.log("\n");
                 }
 
+                console.log("Recast:", "Sentence:");
+                console.log("Recast:", "type:", sentences_type);
+                console.log("Recast:", "action:", sentences_action);
+                console.log("Recast:", "noun:", noun);
+                console.log("Recast:", "adjective:", adjective);
+                console.log("\n");
+
+                sendMessageToSlackBot("message: " + message + "\naction: " + sentences_action);
+
+                if (intentFiltered) {
+                    switch (intentFiltered) {
+                        case INTENT_HELLOGREETINGS:
+                            console.log("Script:", "Custom Intent:", INTENT_HELLOGREETINGS);
+                        break;
+                        case INTENT_LIGHTS:
+                            if (sentences_action === "turn off") {
+                                sendSmartThingsCommand({"command":"off","params":{}});
+                            } else {
+                                sendSmartThingsCommand({"command":"on","params":{}});
+                            }
+                        break;
+                        default:
+                            console.warn("failed to find filtered intent", intentFiltered);
+                    }
+                } else {
+                    // Use noun, adjective
+                    // Use more logic to understand what is happening
+                }
             });
         }
     });

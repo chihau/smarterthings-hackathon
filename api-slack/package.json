@@ -5,6 +5,9 @@
   "private": true,
   "dependencies": {
     "slackbots": "latest",
-    "recastai": "latest"
+    "recastai": "latest",
+    "simple-oauth2": "latest",
+    "request": "latest",
+    "express": "latest"
   }
 }
