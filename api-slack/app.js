@@ -16,7 +16,7 @@ const CLIENT = new recast.Client("6e2279f76259410654ada452d8c2404e");
 
 // create a bot 
 var bot = new SlackBot({
-    token: '', // Add a bot https://my.slack.com/services/new/bot and put the token  
+    token: process.env.SLACK_TOKEN, // Add a bot https://my.slack.com/services/new/bot and put the token  
     name: 'smarterthingsbot'
 });
  
