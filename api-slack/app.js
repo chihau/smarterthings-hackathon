@@ -18,8 +18,22 @@ const CLIENT = new recast.Client("6e2279f76259410654ada452d8c2404e");
 // Intent consts
 const INTENT_HELLOGREETINGS = "hello-greetings";
 const INTENT_LIGHTS = "lights";
+const INTENT_STATUS = "status";
 
-var filterForIntents = [INTENT_HELLOGREETINGS, INTENT_LIGHTS];
+var filterForIntents = [INTENT_HELLOGREETINGS, INTENT_LIGHTS, INTENT_STATUS];
+
+function receiveSmartThingsStatus(callback) {
+    // curl -H "A88d50e" "https://graph.api.smartthings.com/api/smartapps/installations/9516b0a3-d929-4c05-891a-d5b93ae87f34/devices/switches/a365ec3f-41de-49d7-973e-9efee9191000
+    request.get(
+    {
+        headers: {
+          "Authorization": "Bearer 6d0e2a98-c65c-4938-a4fa-04089c88d50e",
+          'Content-Type': 'application/json'
+        },
+        uri: 'https://graph.api.smartthings.com/api/smartapps/installations/9516b0a3-d929-4c05-891a-d5b93ae87f34/devices/switches/a365ec3f-41de-49d7-973e-9efee9191000',
+        method: 'GET'
+        }, callback);
+}
 
 function sendSmartThingsCommand(commandObject) {
     request.post(
@@ -42,6 +56,8 @@ function sendSmartThingsCommand(commandObject) {
         }
     );
 }
+
+receiveSmartThingsStatus();
 
 // create a bot 
 var bot = new SlackBot({
@@ -170,10 +186,43 @@ bot.on('start', function() {
                         case INTENT_HELLOGREETINGS:
                             console.log("Script:", "Custom Intent:", INTENT_HELLOGREETINGS);
                         break;
+                        case INTENT_STATUS:
+
+                        break;
                         case INTENT_LIGHTS:
                             switch (type) {
                                 case "yes_no":
+                                if (sentences_action === "be") {
+                                receiveSmartThingsStatus(function (err, res, body) {
+                                    if (err) {
+                                        console.error("SmartThings:", err);
+                                        return;
+                                    }
+                                    console.log("SmartThings:", body);
 
+                                    var bodyObject = JSON.parse(body);
+                                    var displayName = bodyObject.displayName;
+                                    var switchValue = bodyObject['attributes']['switch'];
+
+                                    var returnString = "";
+                                    if (adjective === "on") {
+                                        // on
+                                        if (switchValue === "on") {
+                                            returnString = "Yes, your lights are on.";
+                                        } else {
+                                            returnString = "No, your lights are not on.";
+                                        }
+                                    } else {
+                                        // off
+                                        if (switchValue === "on") {
+                                            returnString = "No, your lights are on.";
+                                        } else {
+                                            returnString = "Yes, your lights are off.";
+                                        }
+                                    }
+                                    sendMessageToSlackBot(returnString)
+                                });
+                            }
                                 break;
                                 case "command":
                                 if (sentences_action === "turn off") {
@@ -181,6 +230,7 @@ bot.on('start', function() {
                                 } else if (sentences_action === "turn on") {
                                     sendSmartThingsCommand({"command":"on","params":{}});
                                 } else if (sentences_action === "dim") {
+                                    // NOTE: Dimmer does not work. Changes to the SmartThings API is required.
                                     sendSmartThingsCommand({"command":"setLevel","params":{ "level" : percent }});
                                 }
                                 break;
