@@ -1,6 +1,16 @@
 var SlackBot = require('slackbots');
 var recast = require('recastai');
 var request = require('request');
+var bodyParser = require('body-parser')
+var express = require('express')
+
+var app = express();
+app.use( bodyParser.json() );       // to support JSON-encoded bodies
+app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
+  extended: true
+}));
+
+var slackSendReference = null;
 
 // Utility methods
 function sendRequestToRecast(text, callback) {
@@ -92,6 +102,8 @@ bot.on('start', function() {
     function sendMessageToSlackBot(text) {
       bot.postMessageToChannel('general', text, params);
     };
+
+    slackSendReference = sendMessageToSlackBot;
 
     // // define channel, where bot exist. You can adjust it there https://my.slack.com/services
     // bot.postMessageToChannel('general', 'meow!', params);
@@ -200,48 +212,53 @@ bot.on('start', function() {
                     + "\naction: " + sentences_action
                     + "\nintents: " + intents);
 
+
+                function handleLightStatus() {
+                    if (sentences_action === "be") {
+                        receiveSmartThingsStatus(function (err, res, body) {
+                            if (err) {
+                                console.error("SmartThings:", err);
+                                return;
+                            }
+                            console.log("SmartThings:", body);
+
+                            var bodyObject = JSON.parse(body);
+                            var displayName = bodyObject.displayName;
+                            var switchValue = bodyObject['attributes']['switch'];
+
+                            var returnString = "";
+                            if (adjective === "on") {
+                                // on
+                                if (switchValue === "on") {
+                                    returnString = "Yes, your lights are on.";
+                                } else {
+                                    returnString = "No, your lights are not on.";
+                                }
+                            } else {
+                                // off
+                                if (switchValue === "on") {
+                                    returnString = "No, your lights are on.";
+                                } else {
+                                    returnString = "Yes, your lights are off.";
+                                }
+                            }
+                            sendMessageToSlackBot(returnString)
+                        });
+                    }
+                }
+
                 if (intentFiltered) {
                     switch (intentFiltered) {
                         case INTENT_HELLOGREETINGS:
                             console.log("Script:", "Custom Intent:", INTENT_HELLOGREETINGS);
                         break;
                         case INTENT_STATUS:
-
+                            handleLightStatus();
                         break;
                         case INTENT_LIGHTS:
                             switch (type) {
                                 case "yes_no":
-                                if (sentences_action === "be") {
-                                receiveSmartThingsStatus(function (err, res, body) {
-                                    if (err) {
-                                        console.error("SmartThings:", err);
-                                        return;
-                                    }
-                                    console.log("SmartThings:", body);
-
-                                    var bodyObject = JSON.parse(body);
-                                    var displayName = bodyObject.displayName;
-                                    var switchValue = bodyObject['attributes']['switch'];
-
-                                    var returnString = "";
-                                    if (adjective === "on") {
-                                        // on
-                                        if (switchValue === "on") {
-                                            returnString = "Yes, your lights are on.";
-                                        } else {
-                                            returnString = "No, your lights are not on.";
-                                        }
-                                    } else {
-                                        // off
-                                        if (switchValue === "on") {
-                                            returnString = "No, your lights are on.";
-                                        } else {
-                                            returnString = "Yes, your lights are off.";
-                                        }
-                                    }
-                                    sendMessageToSlackBot(returnString)
-                                });
-                            }
+                                    handleLightStatus();
                                 break;
                                 case "command":
                                 if (sentences_action === "turn off") {
@@ -280,4 +297,15 @@ bot.on('start', function() {
             });
         }
     });
+});
+
+app.post('/sendSlackBotMessage', function(req, res) {
+    var message = req.body.message;
+    console.log("Script:", message);
+    slackSendReference(message);
+    res.send("1");
+});
+
+app.listen(8066, function () {
+    console.log('Example app listening on port 8066!');
 });

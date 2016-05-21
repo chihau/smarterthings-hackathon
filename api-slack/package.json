@@ -8,6 +8,7 @@
     "recastai": "latest",
     "simple-oauth2": "latest",
     "request": "latest",
-    "express": "latest"
+    "express": "latest",
+    "body-parser": "latest"
   }
 }
