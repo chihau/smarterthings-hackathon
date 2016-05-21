@@ -27,7 +27,7 @@ bot.on('start', function() {
         // all ingoing events https://api.slack.com/rtm 
         // console.log(data);
 
-        if (message.type === "message") {
+        if (data.type === "message") {
             console.log("channel:", message.channel);
             console.log("user:", message.user);
             console.log("text:", message.text);
