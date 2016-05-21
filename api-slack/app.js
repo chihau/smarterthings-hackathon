@@ -19,6 +19,8 @@ const CLIENT = new recast.Client("6e2279f76259410654ada452d8c2404e");
 const INTENT_HELLOGREETINGS = "hello-greetings";
 const INTENT_LIGHTS = "lights";
 
+var filterForIntents = [INTENT_HELLOGREETINGS, INTENT_LIGHTS];
+
 function sendSmartThingsCommand(commandObject) {
     request.post(
     {
@@ -108,12 +110,11 @@ bot.on('start', function() {
 
                 // console.log("Recast:", res.raw.results.sentences);
 
+
                 var intents = res.raw.results.intents;
                 // console.log("Recast:", intents);
                 var sentences = res.raw.results.sentences;
                 // sentences can be > 1
-
-                var filterForIntents = [INTENT_HELLOGREETINGS, INTENT_LIGHTS];
 
                 var intentFiltered = "";
                 for (var f = 0; f < filterForIntents.length; f++) {
@@ -124,6 +125,8 @@ bot.on('start', function() {
 
                 var noun = "";
                 var adjective = "";
+                var percent = "";
+                var type = "";
 
                 for (var i = 0; i < sentences.length; i++) {
                     // type can be "yes_no", or "command"
@@ -145,9 +148,12 @@ bot.on('start', function() {
                         var entity = sentences_entities;
                         noun = entity.noun ? (entity.noun[0] || entry.noun).value : "";
                         adjective = entity.adjective ? (entity.adjective[0] || entry.adjective).value : "";
+                        percent = entity.percent ? (entity.percent[0] || entry.percent).value : "";
+                        type = sentences_type;
                     }
                 }
 
+                console.log("Recast:", "Intents:", intents);
                 console.log("Recast:", "Sentence:");
                 console.log("Recast:", "type:", sentences_type);
                 console.log("Recast:", "action:", sentences_action);
@@ -155,7 +161,9 @@ bot.on('start', function() {
                 console.log("Recast:", "adjective:", adjective);
                 console.log("\n");
 
-                sendMessageToSlackBot("message: " + message + "\naction: " + sentences_action);
+                sendMessageToSlackBot("message: " + message 
+                    + "\naction: " + sentences_action 
+                    + "\nintents: " + intents);
 
                 if (intentFiltered) {
                     switch (intentFiltered) {
@@ -163,10 +171,19 @@ bot.on('start', function() {
                             console.log("Script:", "Custom Intent:", INTENT_HELLOGREETINGS);
                         break;
                         case INTENT_LIGHTS:
-                            if (sentences_action === "turn off") {
-                                sendSmartThingsCommand({"command":"off","params":{}});
-                            } else {
-                                sendSmartThingsCommand({"command":"on","params":{}});
+                            switch (type) {
+                                case "yes_no":
+
+                                break;
+                                case "command":
+                                if (sentences_action === "turn off") {
+                                    sendSmartThingsCommand({"command":"off","params":{}});
+                                } else if (sentences_action === "turn on") {
+                                    sendSmartThingsCommand({"command":"on","params":{}});
+                                } else if (sentences_action === "dim") {
+                                    sendSmartThingsCommand({"command":"on","params":{ "level" : percent }});
+                                }
+                                break;
                             }
                         break;
                         default:
