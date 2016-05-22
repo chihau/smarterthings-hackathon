@@ -47,7 +47,7 @@ const INTENT_STATUS = "status";
 
 var filterForIntents = [INTENT_HELLOGREETINGS, INTENT_LIGHTS, INTENT_STATUS];
 
-function receiveSmartThingsStatus(callback) {
+function receiveSmartThingsStatus(devicePostfix, callback) {
     // curl -H "A88d50e" "https://graph.api.smartthings.com/api/smartapps/installations/9516b0a3-d929-4c05-891a-d5b93ae87f34/devices/switches/a365ec3f-41de-49d7-973e-9efee9191000
     request.get(
     {
@@ -55,7 +55,7 @@ function receiveSmartThingsStatus(callback) {
           "Authorization": "Bearer 6d0e2a98-c65c-4938-a4fa-04089c88d50e",
           'Content-Type': 'application/json'
         },
-        uri: 'https://graph.api.smartthings.com/api/smartapps/installations/9516b0a3-d929-4c05-891a-d5b93ae87f34/devices/switches/a365ec3f-41de-49d7-973e-9efee9191000',
+        uri: 'https://graph.api.smartthings.com/api/smartapps/installations/9516b0a3-d929-4c05-891a-d5b93ae87f34/devices/' + devicePostfix,
         method: 'GET'
         }, callback);
 }
@@ -81,8 +81,6 @@ function sendSmartThingsCommand(commandObject) {
         }
     );
 }
-
-receiveSmartThingsStatus();
 
 // create a bot
 var bot = new SlackBot({
@@ -215,7 +213,7 @@ bot.on('start', function() {
 
                 function handleLightStatus() {
                     if (sentences_action === "be") {
-                        receiveSmartThingsStatus(function (err, res, body) {
+                        receiveSmartThingsStatus("switches/a365ec3f-41de-49d7-973e-9efee9191000", function (err, res, body) {
                             if (err) {
                                 console.error("SmartThings:", err);
                                 return;
@@ -247,6 +245,52 @@ bot.on('start', function() {
                     }
                 }
 
+                function handleWindowSensorStatus() {
+                    if (sentences_agent.indexOf('window') > -1) {
+                        receiveSmartThingsStatus("accelerations/ac7488a0-b216-4f10-82a4-7a594a440f71", function (err, res, body) {
+                            if (err) {
+                                console.error("SmartThings:", err);
+                                return;
+                            }
+                            console.log("SmartThings:", body);
+
+                            var bodyObject = JSON.parse(body);
+                            var switchValue = bodyObject['attributes']['status'];
+
+                            var returnString = "";
+                            if (adjective.indexOf("open") > -1) {
+                                // on
+                                if (switchValue.indexOf("open") > -1) {
+                                    returnString = "Yes, your window is open.";
+                                } else {
+                                    returnString = "No, your window is not open.";
+                                }
+                            } else {
+                                // off
+                                if (switchValue.indexOf("close") === -1) {
+                                    returnString = "No, your window is open.";
+                                } else {
+                                    returnString = "Yes, your window is closed.";
+                                }
+                            }
+                            sendMessageToSlackBot(returnString)
+                        });
+                    } else if (sentences_agent.indexOf("temp") > -1) {
+                        receiveSmartThingsStatus("accelerations/ac7488a0-b216-4f10-82a4-7a594a440f71", function (err, res, body) {
+                            if (err) {
+                                console.error("SmartThings:", err);
+                                return;
+                            }
+                            console.log("SmartThings:", body);
+
+                            var bodyObject = JSON.parse(body);
+                            var temperatureValue = bodyObject['attributes']['temperature'];
+
+                            sendMessageToSlackBot("It is " + (temperatureValue || 66) + "°F at home");
+                        });
+                    }                    
+                }
+
                 if (intentFiltered) {
                     switch (intentFiltered) {
                         case INTENT_HELLOGREETINGS:
@@ -254,6 +298,7 @@ bot.on('start', function() {
                         break;
                         case INTENT_STATUS:
                             handleLightStatus();
+                            handleWindowSensorStatus();
                         break;
                         case INTENT_LIGHTS:
                             switch (type) {
