@@ -188,11 +188,11 @@ bot.on('start', function() {
                 for (var i = 0; i < sentences.length; i++) {
                     // type can be "yes_no", or "command"
                     var sentence = sentences[i];
-                    var sentences_type = sentence.type;
-                    var sentences_action = sentence.action;
+                    var sentences_type = sentence.type || "";
+                    var sentences_action = sentence.action || "";
                     var sentences_agent = sentence.agent || "";
-                    var sentences_polarity = sentence.polarity;
-                    var sentences_entities = sentence.entities;
+                    var sentences_polarity = sentence.polarity || "";
+                    var sentences_entities = sentence.entities || "";
 
                     if (typeof sentences_entities === "array") {
                         // This is the use-case when multiple sentences are asked
