@@ -190,7 +190,7 @@ bot.on('start', function() {
                     var sentence = sentences[i];
                     var sentences_type = sentence.type;
                     var sentences_action = sentence.action;
-                    var sentences_agent = sentence.agent;
+                    var sentences_agent = sentence.agent || "";
                     var sentences_polarity = sentence.polarity;
                     var sentences_entities = sentence.entities;
 
