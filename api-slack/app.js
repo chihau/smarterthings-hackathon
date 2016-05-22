@@ -55,8 +55,9 @@ const CLIENT = new recast.Client("6e2279f76259410654ada452d8c2404e");
 const INTENT_HELLOGREETINGS = "hello-greetings";
 const INTENT_LIGHTS = "lights";
 const INTENT_STATUS = "status";
+const INTENT_THANKS = "thanks";
 
-var filterForIntents = [INTENT_HELLOGREETINGS, INTENT_LIGHTS, INTENT_STATUS];
+var filterForIntents = [INTENT_HELLOGREETINGS, INTENT_LIGHTS, INTENT_STATUS, INTENT_THANKS];
 
 function receiveSmartThingsStatus(devicePostfix, callback) {
     // curl -H "A88d50e" "https://graph.api.smartthings.com/api/smartapps/installations/9516b0a3-d929-4c05-891a-d5b93ae87f34/devices/switches/a365ec3f-41de-49d7-973e-9efee9191000
@@ -164,7 +165,6 @@ bot.on('start', function() {
 
                 // console.log("Recast:", res.raw.results.sentences);
 
-
                 var intents = res.raw.results.intents;
                 // console.log("Recast:", intents);
                 var sentences = res.raw.results.sentences;
@@ -226,6 +226,28 @@ bot.on('start', function() {
                 sampleObject["adjective"] = adjective;
                 sampleObject["agent"] = sentences_agent;
 
+                function handleThanks() {
+                  recognized = true;
+
+                  var mod = "";
+
+
+                  if (sentences_action.indexOf("monica") != -1) {
+                    mod = " Monica!";
+                  }
+
+                  sendMessageToSlackBot(getRandomItem([
+                    "No problem!" + mod,
+                    "Anytime." + mod,
+                    "Sure. Yeah" + mod,
+                    "Ok" + mod,
+                    "I'm going to start asking for a raise" + mod,
+                    "I'll do it this time, but next time it's going to cost you" + mod,
+                    "Well, it is my job" + mod,
+                    "Well, that's what I am here for" + mod
+                  ]));
+                }
+
                 function handleGreetings() {
                   recognized = true;
 
@@ -235,7 +257,9 @@ bot.on('start', function() {
                     "Hello!"
                   ]
 
-                  if (sentences_action.indexOf("be") != -1 && sentences_agent.indexOf("you") != -1) {
+                  if (sentences_action.indexOf("monica") != -1) {
+                    sendMessageToSlackBot("Monica!");
+                  } else if (sentences_action.indexOf("be") != -1 && sentences_agent.indexOf("you") != -1) {
                     sendMessageToSlackBot(getRandomItem([
                       "I'm ok, thanks!",
                       "I'm doing great!",
@@ -351,6 +375,9 @@ bot.on('start', function() {
 
                 if (intentFiltered) {
                     switch (intentFiltered) {
+                        case INTENT_THANKS:
+                            handleThanks();
+                            break;
                         case INTENT_HELLOGREETINGS:
                             handleGreetings();
                             break;
