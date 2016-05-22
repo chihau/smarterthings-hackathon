@@ -342,10 +342,14 @@ bot.on('start', function() {
                                 break;
                                 case "command":
                                 recognized = true;
-                                if (sentences_action === "turn off") {
-                                    sendSmartThingsCommand({"command":"off","params":{}});
-                                } else if (sentences_action === "turn on") {
-                                    sendSmartThingsCommand({"command":"on","params":{}});
+                                if (sentences_action.indexOf("turn") > -1) {
+                                    if (adjective == "on") {
+                                        sendSmartThingsCommand({"command":"on","params":{}});
+                                        slackSendReference("The light has been turned on.");
+                                    } else {
+                                        sendSmartThingsCommand({"command":"off","params":{}});
+                                        slackSendReference("The light has been turned off.");
+                                    } 
                                 } else if (sentences_action === "dim") {
                                     // NOTE: Dimmer does not work. Changes to the SmartThings API is required.
                                     sendSmartThingsCommand({"command":"setLevel","params":{ "level" : percent }});
@@ -370,11 +374,27 @@ bot.on('start', function() {
 });
 
 app.post('/sendSlackBotMessage', function(req, res) {
+    console.log("sendSlackBotMessage");
     var message = req.body.message;
     console.log("Script:", message);
     slackSendReference(message);
     res.send("1");
 });
+
+app.get('/setLightOn', function(req, res) {
+    console.log("setLightOn");
+    sendSmartThingsCommand({"command":"on","params":{}});
+    slackSendReference("The light has been turned on.");
+    res.send("1");
+});
+
+app.get('/setLightOff', function(req, res) {
+    console.log("setLightOff");
+    sendSmartThingsCommand({"command":"off","params":{}});
+    slackSendReference("The light has been turned off.");
+    res.send("1");
+});
+
 
 app.listen(8066, function () {
     console.log('Example app listening on port 8066!');
