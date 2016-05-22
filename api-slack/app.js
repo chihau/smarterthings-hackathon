@@ -25,6 +25,10 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
+function getRandomItem(array) {
+  return array[getRandomInt(0, array.length)]
+}
+
 const HAPPY_DOG_PICS = [
   "http://evansheline.com/wp-content/uploads/2012/04/happy-dog.jpg",
   "http://elelur.com/data_images/articles/happy-dogs-do-you-know-what-makes-them-really-so.jpg",
@@ -225,13 +229,22 @@ bot.on('start', function() {
                 function handleGreetings() {
                   recognized = true;
 
-                  var REPLIES = [
+                  var GREETING_REPLIES = [
                     "Hey!",
                     "Hi!",
                     "Hello!"
                   ]
 
-                  sendMessageToSlackBot(REPLIES[getRandomInt(0, REPLIES.length)]);
+                  if (sentences_action.indexOf("be") != -1 && sentences_agent.indexOf("you") != -1) {
+                    sendMessageToSlackBot(getRandomItem([
+                      "I'm ok, thanks!",
+                      "I'm doing great!",
+                      "I've never been better",
+                      "I am doing just fine"
+                    ]));
+                  } else {
+                      sendMessageToSlackBot(getRandomItem(GREETING_REPLIES));
+                  }
                 }
 
                 function handleLightStatus() {
@@ -324,11 +337,11 @@ bot.on('start', function() {
                               if (adjective === "happy") {
                                 recognized = true;
                                 sendMessageToSlackBot("It looks like your dog is happy :smile:");
-                                sendMessageToSlackBot(HAPPY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
+                                sendMessageToSlackBot(getRandomItem(HAPPY_DOG_PICS) + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "lx" + getRandomInt(0, 9999999));
                               } else if (adjective === "angry"){
                                 recognized = true;
                                 sendMessageToSlackBot("It looks like your dog is angry :rage:");
-                                sendMessageToSlackBot(ANGRY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
+                                sendMessageToSlackBot(getRandomItem(ANGRY_DOG_PICS) + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "lx" + getRandomInt(0, 9999999));
                               }
                             }
                           }
