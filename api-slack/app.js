@@ -37,6 +37,13 @@ const ANGRY_DOG_PICS = [
   "http://i4.mirror.co.uk/incoming/article1829547.ece/ALTERNATES/s615/Angry-dog.jpg"
 ];
 
+const SAD_DOG_PICS = [
+  "https://i.ytimg.com/vi/Xw1C5T-fH2Y/maxresdefault.jpg",
+  "http://janfennellthedoglistener.com/static/cms/sp5.jpg",
+  "http://i0.wp.com/listverse.com/wp-content/uploads/2013/10/Sad-dog-e1382258367817.jpg?resize=632%2C420",
+  "https://www.rover.com/blog/wp-content/uploads/2014/10/sad-dog.jpg"
+]
+
 // Recast Client
 const CLIENT = new recast.Client("6e2279f76259410654ada452d8c2404e");
 
@@ -171,6 +178,8 @@ bot.on('start', function() {
                 var percent = "";
                 var type = "";
                 var agent = "";
+                var sampleObject = {};
+                var recognized = false;
 
                 for (var i = 0; i < sentences.length; i++) {
                     // type can be "yes_no", or "command"
@@ -206,13 +215,15 @@ bot.on('start', function() {
                 console.log("Recgast:", "agent:", sentences_agent);
                 console.log("\n");
 
-                sendMessageToSlackBot("message: " + message
-                    + "\naction: " + sentences_action
-                    + "\nintents: " + intents);
-
+                sampleObject["intents"] = intents;
+                sampleObject["type"] = sentences_type;
+                sampleObject["action"] = sentences_action;
+                sampleObject["noun"] = noun;
+                sampleObject["adjective"] = adjective;
+                sampleObject["agent"] = sentences_agent;
 
                 function handleLightStatus() {
-                    if (sentences_action === "be") {
+                    if (sentences_action === "be" && sentences_agent.indexOf("light") != -1) {
                         receiveSmartThingsStatus("switches/a365ec3f-41de-49d7-973e-9efee9191000", function (err, res, body) {
                             if (err) {
                                 console.error("SmartThings:", err);
@@ -288,7 +299,7 @@ bot.on('start', function() {
 
                             sendMessageToSlackBot("It is " + (temperatureValue || 66) + "°F at home");
                         });
-                    }                    
+                    }
                 }
 
                 if (intentFiltered) {
@@ -303,9 +314,11 @@ bot.on('start', function() {
                         case INTENT_LIGHTS:
                             switch (type) {
                                 case "yes_no":
+                                    recognized = true;
                                     handleLightStatus();
                                 break;
                                 case "command":
+                                recognized = true;
                                 if (sentences_action === "turn off") {
                                     sendSmartThingsCommand({"command":"off","params":{}});
                                 } else if (sentences_action === "turn on") {
@@ -323,12 +336,14 @@ bot.on('start', function() {
                               if (sentences_action === "be") {
                                 if (sentences_agent.indexOf("dog") != -1) {
                                   if (adjective === "happy") {
-                                    sendMessageToSlackBot("It looks like your dog is happy");
+                                    recognized = true;
+                                    sendMessageToSlackBot("It looks like your dog is happy :smile:");
                                     sendMessageToSlackBot(HAPPY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
                                   } else if (adjective === "angry"){
-                                    sendMessageToSlackBot("It looks like your dog is angry");
+                                    recognized = true;
+                                    sendMessageToSlackBot("It looks like your dog is angry :rage:");
                                     sendMessageToSlackBot(ANGRY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
-                                  }  
+                                  }
                                 }
                               }
                               break;
@@ -340,6 +355,10 @@ bot.on('start', function() {
                 } else {
                     // Use noun, adjective
                     // Use more logic to understand what is happening
+                }
+
+                if (!recognized) {
+                  sendMessageToSlackBot(JSON.stringify(sampleObject));
                 }
             });
         }
