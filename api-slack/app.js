@@ -258,6 +258,7 @@ bot.on('start', function() {
 
                 function handleWindowSensorStatus() {
                     if (sentences_agent.indexOf('window') > -1) {
+                        recognized = true;
                         receiveSmartThingsStatus("accelerations/ac7488a0-b216-4f10-82a4-7a594a440f71", function (err, res, body) {
                             if (err) {
                                 console.error("SmartThings:", err);
@@ -287,6 +288,7 @@ bot.on('start', function() {
                             sendMessageToSlackBot(returnString)
                         });
                     } else if (sentences_agent.indexOf("temp") > -1) {
+                        recognized = true;
                         receiveSmartThingsStatus("accelerations/ac7488a0-b216-4f10-82a4-7a594a440f71", function (err, res, body) {
                             if (err) {
                                 console.error("SmartThings:", err);
@@ -302,6 +304,26 @@ bot.on('start', function() {
                     }
                 }
 
+                function handleDogStatus() {
+                    switch (type) {
+                        case "yes_no":
+                          if (sentences_action === "be") {
+                            if (sentences_agent.indexOf("dog") != -1) {
+                              if (adjective === "happy") {
+                                recognized = true;
+                                sendMessageToSlackBot("It looks like your dog is happy :smile:");
+                                sendMessageToSlackBot(HAPPY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
+                              } else if (adjective === "angry"){
+                                recognized = true;
+                                sendMessageToSlackBot("It looks like your dog is angry :rage:");
+                                sendMessageToSlackBot(ANGRY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
+                              }
+                            }
+                          }
+                          break;
+                      }
+                }
+
                 if (intentFiltered) {
                     switch (intentFiltered) {
                         case INTENT_HELLOGREETINGS:
@@ -310,6 +332,7 @@ bot.on('start', function() {
                         case INTENT_STATUS:
                             handleLightStatus();
                             handleWindowSensorStatus();
+                            handleDogStatus();
                         break;
                         case INTENT_LIGHTS:
                             switch (type) {
@@ -330,25 +353,6 @@ bot.on('start', function() {
                                 break;
                             }
                         break;
-                        case INTENT_STATUS:
-                          switch (type) {
-                            case "yes_no":
-                              if (sentences_action === "be") {
-                                if (sentences_agent.indexOf("dog") != -1) {
-                                  if (adjective === "happy") {
-                                    recognized = true;
-                                    sendMessageToSlackBot("It looks like your dog is happy :smile:");
-                                    sendMessageToSlackBot(HAPPY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
-                                  } else if (adjective === "angry"){
-                                    recognized = true;
-                                    sendMessageToSlackBot("It looks like your dog is angry :rage:");
-                                    sendMessageToSlackBot(ANGRY_DOG_PICS[getRandomInt(0, HAPPY_DOG_PICS.length)] + "?" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999) + "l" + getRandomInt(0, 9999999));
-                                  }
-                                }
-                              }
-                              break;
-                          }
-                          break;
                         default:
                             console.warn("failed to find filtered intent", intentFiltered);
                     }
