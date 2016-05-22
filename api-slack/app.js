@@ -447,6 +447,20 @@ app.get('/setLightOff', function(req, res) {
     res.send("1");
 });
 
+app.get('/temperature', function(req, responseObject) {
+    console.log("temperature");
+    receiveSmartThingsStatus("accelerations/ac7488a0-b216-4f10-82a4-7a594a440f71", function (err, res, body) {
+    if (err) {
+        console.error("SmartThings:", err);
+        return;
+    }
+    console.log("SmartThings:", body);
+
+    var bodyObject = JSON.parse(body);
+    var temperatureValue = bodyObject['attributes']['temperature'];
+    responseObject.send(""+temperatureValue);
+    });
+});
 
 app.listen(8066, function () {
     console.log('Example app listening on port 8066!');
