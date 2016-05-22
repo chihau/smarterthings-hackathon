@@ -222,6 +222,18 @@ bot.on('start', function() {
                 sampleObject["adjective"] = adjective;
                 sampleObject["agent"] = sentences_agent;
 
+                function handleGreetings() {
+                  recognized = true;
+
+                  var REPLIES = [
+                    "Hey!",
+                    "Hi!",
+                    "Hello!"
+                  ]
+
+                  sendMessageToSlackBot(REPLIES[getRandomInt(0, REPLIES.length)]);
+                }
+
                 function handleLightStatus() {
                     if (sentences_action === "be" && sentences_agent.indexOf("light") != -1) {
                         receiveSmartThingsStatus("switches/a365ec3f-41de-49d7-973e-9efee9191000", function (err, res, body) {
@@ -327,13 +339,13 @@ bot.on('start', function() {
                 if (intentFiltered) {
                     switch (intentFiltered) {
                         case INTENT_HELLOGREETINGS:
-                            console.log("Script:", "Custom Intent:", INTENT_HELLOGREETINGS);
-                        break;
+                            handleGreetings();
+                            break;
                         case INTENT_STATUS:
                             handleLightStatus();
                             handleWindowSensorStatus();
                             handleDogStatus();
-                        break;
+                            break;
                         case INTENT_LIGHTS:
                             switch (type) {
                                 case "yes_no":
@@ -349,7 +361,7 @@ bot.on('start', function() {
                                     } else {
                                         sendSmartThingsCommand({"command":"off","params":{}});
                                         slackSendReference("The light has been turned off.");
-                                    } 
+                                    }
                                 } else if (sentences_action === "dim") {
                                     // NOTE: Dimmer does not work. Changes to the SmartThings API is required.
                                     sendSmartThingsCommand({"command":"setLevel","params":{ "level" : percent }});
